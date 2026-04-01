@@ -5,30 +5,35 @@ class Tensor:
     def __init__(self, data, _backward=()):
         self.data = data
         self._backward = lambda: None
-        self._grad = 0
+        self._grad = None
 
     def __matmul__(self, other):
-        out = self.data @ other.data
+        out = Tensor(self.data @ other.data)
 
-        def backward(self, other):
+        def _backward():
             self._grad = out._grad @ np.transpose(other.data)
-            other._grad = self._grad @ np.transpose(self.data)
-        out._backward = backward
+            other._grad = np.transpose(self.data) @ out._grad
+        out._backward = _backward
 
         return out
 
     def __add__(self, other):
         out = self.data + other.data
 
-        def backward(self, other):
+        def _backward():
             self._grad = out._grad
             other._grad = out._grad
-        out._backward = backward
+        out._backward = _backward
 
         return out
+
+    def backward(self, allow_fill=False):
+        if allow_fill is True:
+            self._grad = np.ones_like(self.data)
+        self._backward()
     
     def __repr__(self):
-        return str(a._data)
+        return f"Tensor:\n{str(self.data)}\nGrad:\n{str(self._grad)}"
 
 if __name__ == "__main__":
     a = Tensor(np.array([
@@ -40,7 +45,8 @@ if __name__ == "__main__":
             [1,2],
             [4,5],
         ]))
+    c = a @ b
+    c.backward(allow_fill=True)
+    print(str(c))
     print(str(a))
-    print("Transposed:")
-    a= np.transpose(a)
-    print(str(a))
+    print(str(b))
