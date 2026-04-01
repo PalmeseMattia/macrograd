@@ -34,19 +34,3 @@ class Tensor:
     
     def __repr__(self):
         return f"Tensor:\n{str(self.data)}\nGrad:\n{str(self._grad)}"
-
-if __name__ == "__main__":
-    a = Tensor(np.array([
-            [1,2],
-            [4,5],
-        ]))
-
-    b = Tensor(np.array([
-            [1,2],
-            [4,5],
-        ]))
-    c = a @ b
-    c.backward(allow_fill=True)
-    print(str(c))
-    print(str(a))
-    print(str(b))
