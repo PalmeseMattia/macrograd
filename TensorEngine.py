@@ -5,15 +5,15 @@ class Tensor:
     def __init__(self, data, _backward=(), _parents=()):
         self.data = data
         self._backward = lambda: None
-        self._grad = None
+        self._grad = np.zeros_like(data)
         self._parents = _parents
 
     def __matmul__(self, other):
         out = Tensor(self.data @ other.data, _parents=(self, other))
 
         def _backward():
-            self._grad = out._grad @ np.transpose(other.data)
-            other._grad = np.transpose(self.data) @ out._grad
+            self._grad += out._grad @ np.transpose(other.data)
+            other._grad += np.transpose(self.data) @ out._grad
         out._backward = _backward
 
         return out
@@ -22,9 +22,17 @@ class Tensor:
         out = Tensor(self.data + other.data, _parents=(self, other))
 
         def _backward():
-            self._grad = out._grad
-            other._grad = out._grad
+            self._grad += out._grad
+            other._grad += out._grad
         out._backward = _backward
+
+        return out
+
+    def relu(self):
+        out = Tensor(np.maximum(self.data, np.zeros_like(self.data)))
+
+        def _backward():
+            pass
 
         return out
 
