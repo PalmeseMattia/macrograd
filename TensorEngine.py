@@ -31,18 +31,21 @@ class Tensor:
     def backward(self, allow_fill=False):
         if allow_fill is True:
             self._grad = np.ones_like(self.data)
-        #TODO: Build DAG
-        #TODO: Call backward recursively
-        self._backward()
+        
+        #Build DAG
+        visited = set()
+        topo = []
+        def build_topo(node):
+            if node not in visited:
+                visited.add(node)
+                for n in node._parents:
+                    build_topo(n)
+                topo.append(node)
+        build_topo(self)
+
+        for node in reversed(topo):
+            node._backward()
+        
     
     def __repr__(self):
         return f"Tensor:\n{str(self.data)}\nGrad:\n{str(self._grad)}"
-    
-if __name__ == "__main__":
-    a = Tensor(np.array([1,2,3]))
-    b = Tensor(np.array([1,2,3]))
-    c = a @ b
-    print(a.__hash__)
-    print(b.__hash__)
-    for n in c._parents:
-        print(f'Parent of C: {n.__hash__}')
