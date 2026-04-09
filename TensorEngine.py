@@ -32,7 +32,8 @@ class Tensor:
         out = Tensor(np.maximum(self.data, np.zeros_like(self.data)))
 
         def _backward():
-            pass
+            self._grad += (out.data > 0) * out._grad
+        out._backward = _backward
 
         return out
 

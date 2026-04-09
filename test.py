@@ -6,16 +6,16 @@ from TensorEngine import Tensor
 class testOperations(unittest.TestCase):
     def test_matmul(self):
         a = np.array([[1,2],[4,5],]).astype(np.float32)
-        b = np.array([[1,2],[3,8],]).astype(np.float32)
-        d = np.array([[7,8],[0,8],]).astype(np.float32)
+        b = np.array([[1,2],[-3,8],]).astype(np.float32)
+        d = np.array([[7,8],[0,-1],]).astype(np.float32)
 
         # MacroGrad
         a_mg = Tensor(a)
         b_mg = Tensor(b)
         d_mg = Tensor(d)
 
-        c_mg = a_mg @ b_mg
-        e_mg = c_mg @ d_mg
+        c_mg = (a_mg @ b_mg).relu()
+        e_mg = (c_mg @ d_mg).relu()
         e_mg.backward(allow_fill=True)
 
         # PyTorch
@@ -23,8 +23,8 @@ class testOperations(unittest.TestCase):
         b_pt = torch.tensor(b, requires_grad=True)
         d_pt = torch.tensor(d, requires_grad=True)
         
-        c_pt = a_pt.matmul(b_pt)
-        e_pt = c_pt.matmul(d_pt)
+        c_pt = a_pt.matmul(b_pt).relu()
+        e_pt = c_pt.matmul(d_pt).relu()
         e_pt.backward(torch.ones_like(c_pt))
 
         # Assertions
