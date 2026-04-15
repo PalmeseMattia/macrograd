@@ -1,4 +1,5 @@
 import numpy as np
+from numbers import Number
 
 class Tensor:
 
@@ -24,6 +25,16 @@ class Tensor:
         def _backward():
             self._grad += out._grad
             other._grad += out._grad
+        out._backward = _backward
+
+        return out
+    
+    def __pow__(self, other):
+        assert isinstance(other, Number)
+        out = Tensor(self.data ** other, (self, ))
+
+        def _backward():
+            self._grad += (other * self.data**(other-1)) * out._grad
         out._backward = _backward
 
         return out

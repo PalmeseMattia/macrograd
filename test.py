@@ -52,6 +52,26 @@ class testOperations(unittest.TestCase):
 
         np.testing.assert_allclose(a_mg._grad, a_pt.grad.detach().numpy())
         np.testing.assert_allclose(b_mg._grad, b_pt.grad.detach().numpy())
+    
+    def test_pow(self):
+        a = np.array([[1,2],[4,5],]).astype(np.float32)
+        b = np.array([[1,2],[-3,8],]).astype(np.float32)
+        
+        # Macrograd
+        a_mg = Tensor(a)
+        
+        # PyTorch
+        a_pt = torch.tensor(a, requires_grad=True)
+
+        b_mg = a_mg ** 2
+        b_pt = a_pt ** 2
+        print(b_pt)
+        
+        b_mg.backward(allow_fill=True)
+        b_pt.retain_grad()
+        b_pt.backward(torch.ones_like(b_pt))
+        
+        np.testing.assert_allclose(a_mg._grad, a_pt.grad.detach().numpy())
 
 
 if __name__ == "__main__":
