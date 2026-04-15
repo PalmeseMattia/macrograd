@@ -28,6 +28,16 @@ class Tensor:
 
         return out
 
+    def __sub__(self, other):
+        out = Tensor(self.data - other.data, _parents=(self, other))
+
+        def _backward():
+            self._grad += 1 * out._grad
+            other._grad += -1.0 * out._grad
+        out._backward = _backward
+
+        return out
+
     def relu(self):
         out = Tensor(np.maximum(self.data, np.zeros_like(self.data)))
 
@@ -54,7 +64,9 @@ class Tensor:
 
         for node in reversed(topo):
             node._backward()
-        
+
+    def grad_zero(self):
+        self._grad = 0 
     
     def __repr__(self):
         return f"Tensor:\n{str(self.data)}\nGrad:\n{str(self._grad)}"
