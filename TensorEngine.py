@@ -31,7 +31,7 @@ class Tensor:
     
     def __pow__(self, other):
         assert isinstance(other, Number)
-        out = Tensor(self.data ** other, (self, ))
+        out = Tensor(self.data ** other, _parents=(self, ))
 
         def _backward():
             self._grad += (other * self.data**(other-1)) * out._grad
@@ -48,6 +48,36 @@ class Tensor:
         out._backward = _backward
 
         return out
+    
+    def __isub__(self, other):
+        if isinstance(other, Tensor):
+            self.data -= other.data
+        else:
+            self.data -=other
+        return self
+
+    def sum(self):
+        out = Tensor(np.array([self.data.sum()]), _parents=(self,))
+
+        def _backward():
+            self._grad += np.ones_like(self.data) * out._grad
+        out._backward = _backward
+
+        return out
+    
+    def __mul__(self, other):
+        out = Tensor(self.data * other.data, _parents=(self, other))
+
+        def _backward():
+            self._grad += other.data * out._grad
+            other._grad += self.data * out._grad
+        out._backward = _backward
+
+        return out
+    
+    def mean(self):
+        div = Tensor(np.array([1/self.data.size]))
+        return self.sum() * div
 
     def relu(self):
         out = Tensor(np.maximum(self.data, np.zeros_like(self.data)))
@@ -77,7 +107,7 @@ class Tensor:
             node._backward()
 
     def grad_zero(self):
-        self._grad = 0 
+        self._grad = np.zeros_like(self.data)
     
     def __repr__(self):
         return f"Tensor:\n{str(self.data)}\nGrad:\n{str(self._grad)}"
